@@ -18,15 +18,17 @@ public class HealthMetric {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users user;
+
     private Double weight;
     private Double height;
-    private Integer steps;
     private Double calories;
+    private Double steps;
 
     @Column(name = "created_at", updatable = false)
     private Date createdDate = new Date();
 
     @Column(name = "updated_at")
     private Date updatedDate;
+
 }

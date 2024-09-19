@@ -16,7 +16,7 @@ public class Goal {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private Users users;
 
     private String goalType;
     private Double targetValue;

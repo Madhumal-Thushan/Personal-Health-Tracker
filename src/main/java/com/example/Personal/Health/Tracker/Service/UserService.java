@@ -1,8 +1,7 @@
 package com.example.Personal.Health.Tracker.Service;
 
-import com.example.Personal.Health.Tracker.Entity.User;
+import com.example.Personal.Health.Tracker.Entity.Users;
 import com.example.Personal.Health.Tracker.Repository.UserRepository;
-import com.example.Personal.Health.Tracker.Utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,42 +10,44 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    private JWTService jwtService;
 
     @Autowired
-    private AuthenticationManager authManager;
+    AuthenticationManager authManager;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private UserRepository repo;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     /**
-     * Register user with cred and hash the Password
-     *
+     * Register User with Username And Password
+     * used password Encorder
      * @param user
-     * @return
+     * @return user
      */
-    public User registerUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+    public Users registerUser(Users user) {
+        user.setPassword(encoder.encode(user.getPassword()));
+        repo.save(user);
+        return user;
     }
 
-    /**verify user when login return access token
-     *
+    /**
+     * Verify User, Authenticate user
      * @param user
      * @return
      */
-    public String verifyUser(User user) {
+    public String verifyUser(Users user) {
         Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-        if (authentication.isAuthenticated())
-            return jwtUtil.generateToken(user.getUsername());
-        throw new  UsernameNotFoundException("User Not Authenticated");
+        if (authentication.isAuthenticated()) {
+            return jwtService.generateToken(user.getUsername());
+        } else {
+            throw new UsernameNotFoundException("user not found");
+        }
     }
 }
