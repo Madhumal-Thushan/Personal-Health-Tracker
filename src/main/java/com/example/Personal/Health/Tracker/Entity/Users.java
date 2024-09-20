@@ -13,11 +13,4 @@ public class Users {
     private Long id;
     private String username;
     private String password;
-
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL)
-    private List<HealthMetric> healthMetricList;
-
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL)
-    private List<Goal> goalList;
-
 }

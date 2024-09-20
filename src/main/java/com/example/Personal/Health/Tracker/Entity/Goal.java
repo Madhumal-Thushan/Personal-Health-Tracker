@@ -24,7 +24,7 @@ public class Goal {
     @Enumerated
     private GoalType goalType;
     private Double targetValue;
-    private Date targetDate;
+    private LocalDate targetDate;
 
     private Boolean achieved = false;
 

@@ -2,6 +2,7 @@ package com.example.Personal.Health.Tracker.Service;
 
 import com.example.Personal.Health.Tracker.Dto.HealthMetricDto;
 import com.example.Personal.Health.Tracker.Entity.HealthMetric;
+import com.example.Personal.Health.Tracker.Enum.MetricType;
 import com.example.Personal.Health.Tracker.Exception.ResourceNotFoundException;
 import com.example.Personal.Health.Tracker.Repository.HealthMetricRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,5 +63,18 @@ public class HealthMetricService {
         dto.setValue(metric.getValue());
         dto.setUpdatedDate(metric.getUpdatedDate());
         return dto;
+    }
+
+    public List<HealthMetric> getHealthMetricsByUserAndType(Long id, MetricType metricType) {
+        return healthMetricRepository.findByUserIdAndMetricType(id,metricType);
+    }
+
+    public List<HealthMetric> getHealthMetricsByDateRange(Long userId, LocalDate startDate, LocalDate endDate) {
+        List<HealthMetric> healthMetricList = healthMetricRepository.findByUserIdAndCreatedDateBetween(userId, startDate, endDate);
+        if (healthMetricList.isEmpty()) {
+            throw new ResourceNotFoundException("No health metrics found for user ID: " + userId +
+                    "between" + startDate + " and " + endDate);
+        }
+        return healthMetricList;
     }
 }

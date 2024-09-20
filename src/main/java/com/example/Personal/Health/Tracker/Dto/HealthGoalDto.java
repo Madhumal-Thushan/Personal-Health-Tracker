@@ -19,6 +19,6 @@ public class HealthGoalDto {
     private Double targetValue;
     private LocalDate targetDate;
     private LocalDate createdDate;
-
+    private LocalDate updatedDate;
     private Boolean achieved;
 }
