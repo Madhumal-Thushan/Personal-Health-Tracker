@@ -1,8 +1,11 @@
 package com.example.Personal.Health.Tracker.Entity;
 
+import com.example.Personal.Health.Tracker.Enum.GoalType;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -15,18 +18,21 @@ public class Goal {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id",nullable = false)
     private Users users;
 
-    private String goalType;
+    @Enumerated
+    private GoalType goalType;
     private Double targetValue;
-    private Date startDate;
-    private Date endDate;
+    private Date targetDate;
+
+    private Boolean achieved = false;
 
     @Column(name = "created_at", updatable = false)
-    private Date createdAt;
+    @CreationTimestamp
+    private LocalDate createdAt;
 
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private LocalDate updatedAt;
 
 }

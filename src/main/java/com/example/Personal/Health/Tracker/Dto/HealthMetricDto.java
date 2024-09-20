@@ -1,18 +1,19 @@
 package com.example.Personal.Health.Tracker.Dto;
 
-import com.example.Personal.Health.Tracker.Entity.Users;
-import lombok.Data;
+import com.example.Personal.Health.Tracker.Enum.MetricType;
+import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDate;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class HealthMetricDto {
     private Long id;
-    private Users userId;
-    private Double weight;
-    private Double height;
-    private Double calories;
-    private Double steps;
+    private MetricType metricType;
     private Float value;
-    private Date updatedAt;
+    private LocalDate updatedDate;
+    private LocalDate createdDate;
+
 }

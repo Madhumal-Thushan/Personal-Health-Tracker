@@ -1,9 +1,11 @@
 package com.example.Personal.Health.Tracker.Entity;
 
+import com.example.Personal.Health.Tracker.Enum.MetricType;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 
 @Entity
@@ -20,15 +22,16 @@ public class HealthMetric {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    private Double weight;
-    private Double height;
-    private Double calories;
-    private Double steps;
+    @Enumerated
+    private MetricType metricType;
+
+    private Float value;
 
     @Column(name = "created_at", updatable = false)
-    private Date createdDate = new Date();
+    @CreationTimestamp
+    private LocalDate createdDate;
 
     @Column(name = "updated_at")
-    private Date updatedDate;
+    private LocalDate updatedDate;
 
 }
