@@ -3,7 +3,6 @@ package com.example.Personal.Health.Tracker.Entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.List;
 
 @Entity
 @Data
@@ -13,4 +12,7 @@ public class Users {
     private Long id;
     private String username;
     private String password;
+
+    //added this for Notification and Reminders
+    private String email;
 }

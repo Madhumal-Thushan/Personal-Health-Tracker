@@ -1,15 +1,18 @@
 package com.example.Personal.Health.Tracker.Service;
 
-import com.example.Personal.Health.Tracker.Dto.HealthGoalDto;
-import com.example.Personal.Health.Tracker.Entity.Goal;
-import com.example.Personal.Health.Tracker.Entity.HealthMetric;
+import com.example.Personal.Health.Tracker.Dto.MonthlyReportDto;
+import com.example.Personal.Health.Tracker.Dto.WeeklyReportDto;
+import com.example.Personal.Health.Tracker.Exception.ResourceNotFoundException;
+import com.example.Personal.Health.Tracker.Repository.HealthMetricRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
+@Async
 public class ReportService {
 
     @Autowired
@@ -18,46 +21,45 @@ public class ReportService {
     @Autowired
     private HealthGoalService goalService;
 
+    @Autowired
+    private HealthMetricRepository healthMetricRepository;
+
     /**
-     * Generate Weekly Reports
+     * Generate Average Weekly
+     * @param userId
+     * @return
      */
-    public String generateWeeklyReport(Long userId) {
+    @Transactional
+    public WeeklyReportDto generateWeeklyReport(Long userId) {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(7);
 
-        List<HealthMetric> weeklyMetrics = healthMetricService.getHealthMetricsByDateRange(userId,startDate,endDate);
-        List<Goal> goals = goalService.geGoalByUser(userId);
+        //Get Average From Query
+        WeeklyReportDto weeklyReport = healthMetricRepository.getWeeklyAggregatedData(userId,startDate,endDate);
+        if(weeklyReport==null) {
+            throw new ResourceNotFoundException("No Reports Found for user : " +userId);
+        }
+        return weeklyReport;
 
-        return createReport(weeklyMetrics,goals,"Weekly");
     }
 
-    public String generateMonthlyReport(Long userId) {
+    /**
+     * Generate Average Monthly
+     * @param userId
+     * @return
+     */
+    @Transactional
+    public MonthlyReportDto generateMonthlyReport(Long userId) {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusMonths(1);
 
-        List<HealthMetric> weeklyMetrics = healthMetricService.getHealthMetricsByDateRange(userId,startDate,endDate);
-        List<Goal> goals = goalService.geGoalByUser(userId);
-
-        return createReport(weeklyMetrics,goals,"Monthly");
+        //Get Average From Query
+        MonthlyReportDto monthlyReportDto = healthMetricRepository.getMonthlyAggregatedData(userId,startDate,endDate);
+        if(monthlyReportDto==null) {
+            throw new ResourceNotFoundException("No Reports Found for user : " +userId);
+        }
+        return monthlyReportDto;
     }
 
-    private String createReport(List<HealthMetric> metrics, List<Goal> goals, String reportType) {
-
-        StringBuilder report = new StringBuilder();
-        report.append(reportType).append("Progress Report \n");
-
-        report.append("Health Metrics \n");
-        for(HealthMetric metric: metrics){
-            report.append(metric.getMetricType()).append(":").append(metric.getValue()).append(" ").append("on").append(" ")
-                    .append(metric.getCreatedDate()).append("\n");
-        }
-        report.append("Goals : \n");
-        for(Goal goal : goals){
-            report.append(goal.getGoalType()).append(" ")
-                    .append(": Target ")
-                    .append(goal.getTargetValue()).append(" ").append("Achieved")
-                    .append("\n");
-        }
-        return report.toString();
-    }
+    //can Modify to user to Get Between Custom Dates
 }

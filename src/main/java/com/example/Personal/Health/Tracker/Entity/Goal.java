@@ -6,7 +6,6 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Entity
 @Data
@@ -18,21 +17,23 @@ public class Goal {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id",nullable = false)
+    @JoinColumn(name = "user_id")
     private Users users;
 
     @Enumerated
     private GoalType goalType;
     private Double targetValue;
-    private LocalDate targetDate;
 
     private Boolean achieved = false;
+    private Boolean isActive = true;
 
-    @Column(name = "created_at", updatable = false)
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    @Column(updatable = false)
     @CreationTimestamp
     private LocalDate createdAt;
-
-    @Column(name = "updated_at")
     private LocalDate updatedAt;
+
 
 }

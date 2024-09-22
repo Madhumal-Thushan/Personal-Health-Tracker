@@ -1,4 +1,4 @@
-package com.example.Personal.Health.Tracker.Service;
+package com.example.Personal.Health.Tracker.Service.Auth;
 
 import com.example.Personal.Health.Tracker.Entity.UserPrincipal;
 import com.example.Personal.Health.Tracker.Entity.Users;

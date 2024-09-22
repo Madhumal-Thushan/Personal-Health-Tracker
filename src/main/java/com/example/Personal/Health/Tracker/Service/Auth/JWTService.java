@@ -1,4 +1,4 @@
-package com.example.Personal.Health.Tracker.Service;
+package com.example.Personal.Health.Tracker.Service.Auth;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

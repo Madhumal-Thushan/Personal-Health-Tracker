@@ -1,7 +1,7 @@
 package com.example.Personal.Health.Tracker.Config;
 
-import com.example.Personal.Health.Tracker.Service.JWTService;
-import com.example.Personal.Health.Tracker.Service.AuthService;
+import com.example.Personal.Health.Tracker.Service.Auth.JWTService;
+import com.example.Personal.Health.Tracker.Service.Auth.AuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

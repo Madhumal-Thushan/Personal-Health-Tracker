@@ -1,7 +1,7 @@
 package com.example.Personal.Health.Tracker.Controller;
 
 import com.example.Personal.Health.Tracker.Entity.Users;
-import com.example.Personal.Health.Tracker.Service.UserService;
+import com.example.Personal.Health.Tracker.Service.Auth.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
