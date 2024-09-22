@@ -1,7 +1,7 @@
 package com.example.Personal.Health.Tracker.Controller;
 
 import com.example.Personal.Health.Tracker.Dto.HealthMetricDto;
-import com.example.Personal.Health.Tracker.Entity.HealthMetric;
+import com.example.Personal.Health.Tracker.Dto.Response.HealthMetricResponse;
 import com.example.Personal.Health.Tracker.Service.HealthMetricService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,23 +19,22 @@ public class HealthMetricController {
 
 
     @PostMapping("/add")
-    public ResponseEntity<HealthMetric> addHealthMetrics(@RequestBody HealthMetric healthMetric) {
-        HealthMetric createdMetric = healthMetricService.addHealthMetrics(healthMetric);
-        return new ResponseEntity<>(createdMetric, HttpStatus.CREATED);
+    public ResponseEntity<HealthMetricResponse> addHealthMetrics(@RequestBody HealthMetricDto requestDto) {
+        return new ResponseEntity<>(healthMetricService.addHealthMetrics(requestDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<List<HealthMetricDto>> getHealthMetricsByUser(@RequestParam Long userId){
+    public ResponseEntity<List<HealthMetricResponse>> getHealthMetricsByUser(@RequestParam Long userId){
         return new ResponseEntity<>(healthMetricService.getHealthMetricsByUser(userId),HttpStatus.OK);
     }
 
     @GetMapping("/getHealthMetric")
-    public ResponseEntity<HealthMetricDto> getHealthMetricById(@RequestParam Long id) {
+    public ResponseEntity<HealthMetricResponse> getHealthMetricById(@RequestParam Long id) {
         return ResponseEntity.ok(healthMetricService.getHealthMetricById(id));
     }
 
     @PutMapping("/edit")
-    public ResponseEntity<HealthMetricDto> updateHealthMetric(@RequestParam Long id, @RequestBody HealthMetric metric) {
+    public ResponseEntity<HealthMetricResponse> updateHealthMetric(@RequestParam Long id, @RequestBody HealthMetricDto metric) {
         return ResponseEntity.ok(healthMetricService.updateHealthMetric(id, metric));
     }
 }

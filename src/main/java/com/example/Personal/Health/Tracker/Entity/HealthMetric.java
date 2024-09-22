@@ -22,16 +22,15 @@ public class HealthMetric {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private MetricType metricType;
 
-    private Float value;
+    private Double value;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     @CreationTimestamp
     private LocalDate createdDate;
 
-    @Column(name = "updated_at")
     private LocalDate updatedDate;
 
 }

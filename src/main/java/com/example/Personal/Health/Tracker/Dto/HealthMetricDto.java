@@ -10,9 +10,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class HealthMetricDto {
-    private Long id;
+
+    private Long userId;
     private MetricType metricType;
-    private Float value;
+    private Double value;
     private LocalDate updatedDate;
     private LocalDate createdDate;
 

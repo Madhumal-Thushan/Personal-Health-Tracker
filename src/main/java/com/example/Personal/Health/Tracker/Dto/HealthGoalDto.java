@@ -14,11 +14,11 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class HealthGoalDto {
 
-    private Long id;
+    private Long userId;
     private GoalType goalType;
     private Double targetValue;
-    private LocalDate targetDate;
-    private LocalDate createdDate;
-    private LocalDate updatedDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Boolean isActive;
     private Boolean achieved;
 }

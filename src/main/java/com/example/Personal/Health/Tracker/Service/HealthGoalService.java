@@ -1,13 +1,16 @@
 package com.example.Personal.Health.Tracker.Service;
 
 import com.example.Personal.Health.Tracker.Dto.HealthGoalDto;
-import com.example.Personal.Health.Tracker.Dto.HealthMetricDto;
+import com.example.Personal.Health.Tracker.Dto.HealthGoalUpdateDto;
+import com.example.Personal.Health.Tracker.Dto.Response.GoalResponse;
+import com.example.Personal.Health.Tracker.Dto.Response.HealthMetricResponse;
+import com.example.Personal.Health.Tracker.Dto.UserDto;
 import com.example.Personal.Health.Tracker.Entity.Goal;
-import com.example.Personal.Health.Tracker.Entity.HealthMetric;
+import com.example.Personal.Health.Tracker.Entity.Users;
 import com.example.Personal.Health.Tracker.Enum.GoalType;
-import com.example.Personal.Health.Tracker.Enum.MetricType;
 import com.example.Personal.Health.Tracker.Exception.ResourceNotFoundException;
 import com.example.Personal.Health.Tracker.Repository.HealthGoalRepository;
+import com.example.Personal.Health.Tracker.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,104 +28,128 @@ public class HealthGoalService {
     @Autowired
     private HealthMetricService healthMetricService;
 
+    @Autowired
+    private UserRepository userRepository;
 
-    public HealthGoalDto setHealthGoal(Goal goal){
-        healthGoalRepository.save(goal);
-        return convertToDto(goal);
+
+    /**
+     * Add health Goal
+     * @param dto
+     * @return
+     */
+    public GoalResponse setHealthGoal(HealthGoalDto dto) {
+        Users user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found" + dto.getUserId()));
+        Goal goal = new Goal();
+        goal.setUsers(user);
+        goal.setGoalType(dto.getGoalType());
+        goal.setTargetValue(dto.getTargetValue());
+        goal.setCreatedAt(LocalDate.now());
+        goal.setStartDate(dto.getStartDate());
+        goal.setEndDate(dto.getEndDate());
+        Goal savedGoal =healthGoalRepository.save(goal);
+        return convertToResponseDTO(savedGoal);
     }
 
-    public List<HealthGoalDto> getHealthGoalByUser(Long userId) {
+    /**
+     * Get Health Goal bu User
+     * @param userId
+     * @return
+     */
+    public List<GoalResponse> getHealthGoalByUser(Long userId) {
         List<Goal> goalList = healthGoalRepository.findByUsersId(userId);
         if(goalList.isEmpty()) {
             throw new ResourceNotFoundException("Health Goal not found for user ID : " +userId);
         }
         return goalList.stream()
-                .map(this::convertToDto)
+                .map(this::convertToResponseDTO)
                 .toList();
     }
 
-    public List<Goal> geGoalByUser(Long userId) {
-        List<Goal> goalList = healthGoalRepository.findByUsersId(userId);
-        if(goalList.isEmpty()) {
-            throw new ResourceNotFoundException("Health Goal not found for user ID : " +userId);
-        }
-        return goalList;
-    }
-    private HealthGoalDto convertToDto(Goal goal) {
-        HealthGoalDto dto = new HealthGoalDto();
-        dto.setId(goal.getId());
-        dto.setGoalType(goal.getGoalType());
-        dto.setCreatedDate(goal.getCreatedAt());
-        dto.setTargetDate(goal.getTargetDate());
-        dto.setUpdatedDate(goal.getUpdatedAt());
-        dto.setAchieved(goal.getAchieved());
-        return dto;
+    /**
+     * This Private method Used to Convert according to Goal Response
+     * @param goal
+     * @return
+     */
+    private GoalResponse convertToResponseDTO(Goal goal) {
+        GoalResponse responseDTO = new GoalResponse();
+        responseDTO.setId(goal.getId());
+        responseDTO.setIsActive(goal.getIsActive());
+        responseDTO.setGoalType(goal.getGoalType());
+        responseDTO.setTargetValue(goal.getTargetValue());
+        responseDTO.setAchieved(goal.getAchieved());
+        responseDTO.setStartDate(goal.getStartDate());
+        responseDTO.setEndDate(goal.getEndDate());
+        responseDTO.setCreatedAt(goal.getCreatedAt());
+        responseDTO.setUpdatedAt(goal.getUpdatedAt());
+
+        UserDto userDTO = new UserDto();
+        userDTO.setId(goal.getUsers().getId());
+        userDTO.setUsername(goal.getUsers().getUsername());
+        responseDTO.setUser(userDTO);
+
+        return responseDTO;
     }
 
+    /**
+     * This method use to Update Existing Goal
+     * @param id
+     * @param updateDto
+     * @return
+     */
     @Transactional
-    public HealthGoalDto updateHealthGoal(Long id, Goal updateGoal) {
-        HealthGoalDto dto = new HealthGoalDto();
-        Goal existingGoal = healthGoalRepository.findById(id) .orElseThrow();
+    public GoalResponse updateHealthGoal(Long id, HealthGoalUpdateDto updateDto) {
+        Goal existingGoal = healthGoalRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Goal not found"));
 
-        existingGoal.setTargetValue(updateGoal.getTargetValue());
-        existingGoal.setTargetDate(updateGoal.getTargetDate());
+        existingGoal.setTargetValue(updateDto.getTargetValue());
+        existingGoal.setIsActive(updateDto.getIsActive());
+        existingGoal.setEndDate(updateDto.getStartDate());
         existingGoal.setUpdatedAt(LocalDate.now());
-        healthGoalRepository.save(existingGoal);
 
-        dto.setId(existingGoal.getId());
-        dto.setGoalType(existingGoal.getGoalType());
-        dto.setTargetValue(existingGoal.getTargetValue());
-        dto.setTargetDate(existingGoal.getTargetDate());
-        dto.setAchieved(existingGoal.getAchieved());
-        dto.setCreatedDate(existingGoal.getCreatedAt());
-        return dto;
+        if (updateDto.getUserId() != null) {
+            Users user = userRepository.findById(updateDto.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            existingGoal.setUsers(user);
+        }
+        Goal updatedGoal = healthGoalRepository.save(existingGoal);
+        return convertToResponseDTO(updatedGoal);
     }
 
-    // Track progress towards a goal based on health metrics
-    public List<HealthGoalDto> trackGoalProgress(Long userId) {
-        List<Goal> goals = healthGoalRepository.findByUsersId(userId);
-        List<HealthGoalDto> goalDtoList = new ArrayList<>();
-        for (Goal goal : goals) {
-            if (!goal.getAchieved()) {
-                List<HealthMetric> healthMetricList = healthMetricService.getHealthMetricsByUserAndType(userId, convertGoalTypeToMetricType(goal.getGoalType()));
-                double latestMetricValue = getLatestMetricValue(healthMetricList);
-                if (goal.getGoalType() == GoalType.Weight_Goal && latestMetricValue <= goal.getTargetValue()) {
-                    goal.setAchieved(true);
-                } else if (goal.getGoalType() == GoalType.Step_Goal && latestMetricValue >= goal.getTargetValue()) {
-                    goal.setAchieved(true); //Mark As Achieved if steps exceeded the Target
-                } else if (goal.getGoalType() == GoalType.Calories_Goal && latestMetricValue <= goal.getTargetValue()) {
-                    goal.setAchieved(true);
+    /**
+     * Track Goal Progress based on Health Metrics
+     * @param id
+     * @return
+     */
+    public List<GoalResponse> trackGoalProgress(Long id) {
+        List<Goal> goals = healthGoalRepository.findByUsersId(id);
+        if (goals == null || goals.isEmpty()) {
+            throw new ResourceNotFoundException("No goals found for user: " + id);
+        }
+        List<HealthMetricResponse> healthMetricList = healthMetricService.getHealthMetricsByUser(id);
+        List<GoalResponse> goalResponseList = new ArrayList<>();
+        goals.forEach( goal -> {
+            healthMetricList.forEach(healthMetric -> {
+                // Check if the goal is not achieved and is still active
+                if (!goal.getAchieved() && !goal.getIsActive()) {
+                    if (goal.getGoalType() == GoalType.Weight_Goal && healthMetric.getValue() < goal.getTargetValue()) {
+                        goal.setAchieved(true);
+                    } else if (goal.getGoalType() == GoalType.Step_Goal && healthMetric.getValue() > goal.getTargetValue()) {
+                        goal.setAchieved(true);
+                    } else if (goal.getGoalType() == GoalType.Calories_Goal && healthMetric.getValue() < goal.getTargetValue()) {
+                        goal.setAchieved(true);
+                    }
                 }
-                healthGoalRepository.save(goal);
-            }
-            HealthGoalDto dto = new HealthGoalDto();
-            dto.setId(goal.getId());
-            dto.setGoalType(goal.getGoalType());
-            dto.setTargetValue(goal.getTargetValue());
-            dto.setTargetDate(goal.getTargetDate());
-            dto.setAchieved(goal.getAchieved());
-
-            goalDtoList.add(dto);
-        }
-        return goalDtoList;
-    }
-
-    //Convert Goal type to Metric
-    private MetricType convertGoalTypeToMetricType(GoalType goalType) {
-        return switch (goalType) {
-            case Weight_Goal -> MetricType.Weight;
-            case Step_Goal -> MetricType.Steps;
-            case Calories_Goal -> MetricType.Calories;
-            default -> throw new IllegalArgumentException("Invalid Goal Type ");
-        };
-    }
-
-    //Helper to get the Latest Metric Value
-    private double getLatestMetricValue(List<HealthMetric> metrics) {
-        if(!metrics.isEmpty()){
-            HealthMetric latestMetric = metrics.get(metrics.size()-1);
-            return latestMetric.getValue();
-        }
-        return 0.0;
+            });
+            healthGoalRepository.save(goal);
+            GoalResponse response = new GoalResponse();
+            response.setId(goal.getId());
+            response.setGoalType(goal.getGoalType());
+            response.setTargetValue(goal.getTargetValue());
+            response.setStartDate(goal.getStartDate());
+            response.setEndDate(goal.getEndDate());
+            response.setAchieved(goal.getAchieved());
+            goalResponseList.add(response);
+        });
+        return goalResponseList;
     }
 }

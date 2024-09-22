@@ -1,80 +1,110 @@
 package com.example.Personal.Health.Tracker.Service;
 
 import com.example.Personal.Health.Tracker.Dto.HealthMetricDto;
+import com.example.Personal.Health.Tracker.Dto.Response.HealthMetricResponse;
+import com.example.Personal.Health.Tracker.Dto.UserDto;
 import com.example.Personal.Health.Tracker.Entity.HealthMetric;
-import com.example.Personal.Health.Tracker.Enum.MetricType;
+import com.example.Personal.Health.Tracker.Entity.Users;
 import com.example.Personal.Health.Tracker.Exception.ResourceNotFoundException;
 import com.example.Personal.Health.Tracker.Repository.HealthMetricRepository;
+import com.example.Personal.Health.Tracker.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class HealthMetricService {
 
     @Autowired
     private HealthMetricRepository healthMetricRepository;
+    @Autowired
+    private UserRepository userRepository;
 
+    /**
+     * Add Health Metric by User
+     * @param requestDto
+     * @return
+     */
     @Transactional
-    public HealthMetric addHealthMetrics(HealthMetric healthMetric) {
-        return healthMetricRepository.save(healthMetric);
+    public HealthMetricResponse addHealthMetrics(HealthMetricDto requestDto) {
+        Users user = userRepository.findById(requestDto.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        HealthMetric metric = new HealthMetric();
+        metric.setMetricType(requestDto.getMetricType());
+        metric.setValue(requestDto.getValue());
+        metric.setCreatedDate(LocalDate.now());
+        metric.setUser(user);
+
+        HealthMetric savedMetric = healthMetricRepository.save(metric);
+        return convertToResponseDTO(savedMetric);
     }
+
+    /**
+     * Get All the Health Metrics by User
+     * @param userId
+     * @return
+     */
     @Transactional
-    public List<HealthMetricDto> getHealthMetricsByUser(Long userId) {
+    public List<HealthMetricResponse> getHealthMetricsByUser(Long userId) {
         List<HealthMetric> healthMetricList = healthMetricRepository.findByUserId(userId);
         if(healthMetricList.isEmpty() ) {
             throw new ResourceNotFoundException("No Health Metrics Found for user ID " +userId);
         }
         return healthMetricList.stream()
-                .map(this::convertToDto)
+                .map(this::convertToResponseDTO)
                 .toList();
     }
 
+    /**
+     * Get Single Health Metric By ID
+     * @param id
+     * @return
+     */
     @Transactional
-    public HealthMetricDto getHealthMetricById(Long id) {
+    public HealthMetricResponse getHealthMetricById(Long id) {
         HealthMetric metric = healthMetricRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("HealthMetric not found with id " + id));
-        return convertToDto(metric);
+        return convertToResponseDTO(metric);
     }
+
+    /**
+     * Update Health Metric By User
+     * @param id
+     * @param metric
+     * @return
+     */
     @Transactional
-    public HealthMetricDto updateHealthMetric(Long id, HealthMetric metric) {
-        Optional<HealthMetric> healthMetricOpt = healthMetricRepository.findById(id);
-        if(healthMetricOpt.isPresent() ) {
-            HealthMetric healthMetric = healthMetricOpt.get();
-            healthMetric.setId(healthMetric.getId());
-            healthMetric.setMetricType(metric.getMetricType());
-            healthMetric.setValue(metric.getValue());
-            healthMetric.setUpdatedDate(LocalDate.now());
-            healthMetric.setUser(healthMetricOpt.get().getUser());
-            healthMetricRepository.save(healthMetric);
-        }
-        return convertToDto(metric);
+    public HealthMetricResponse updateHealthMetric(Long id, HealthMetricDto metric) {
+        HealthMetric existingMetric = healthMetricRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("HealthMetric not found with id " + id));
+
+        existingMetric.setMetricType(metric.getMetricType());
+        existingMetric.setValue(metric.getValue());
+        existingMetric.setUpdatedDate(LocalDate.now());
+        healthMetricRepository.save(existingMetric);
+        return convertToResponseDTO(existingMetric);
     }
 
-    private HealthMetricDto convertToDto(HealthMetric metric) {
-        HealthMetricDto dto = new HealthMetricDto();
-        dto.setId(metric.getId());
-        dto.setMetricType(metric.getMetricType());
-        dto.setValue(metric.getValue());
-        dto.setUpdatedDate(metric.getUpdatedDate());
-        return dto;
-    }
+    /**
+     * This Private method Used to Convert according to Health Metric Response
+     * @param metric
+     * @return
+     */
+    private HealthMetricResponse convertToResponseDTO(HealthMetric metric) {
+        HealthMetricResponse responseDTO = new HealthMetricResponse();
+        responseDTO.setId(metric.getId());
+        responseDTO.setMetricType(metric.getMetricType());
+        responseDTO.setValue(metric.getValue());
+        responseDTO.setCreatedDate(metric.getCreatedDate());
 
-    public List<HealthMetric> getHealthMetricsByUserAndType(Long id, MetricType metricType) {
-        return healthMetricRepository.findByUserIdAndMetricType(id,metricType);
-    }
+        UserDto userDTO = new UserDto();
+        userDTO.setId(metric.getUser().getId());
+        userDTO.setUsername(metric.getUser().getUsername());
+        responseDTO.setUser(userDTO);
 
-    public List<HealthMetric> getHealthMetricsByDateRange(Long userId, LocalDate startDate, LocalDate endDate) {
-        List<HealthMetric> healthMetricList = healthMetricRepository.findByUserIdAndCreatedDateBetween(userId, startDate, endDate);
-        if (healthMetricList.isEmpty()) {
-            throw new ResourceNotFoundException("No health metrics found for user ID: " + userId +
-                    "between" + startDate + " and " + endDate);
-        }
-        return healthMetricList;
+        return responseDTO;
     }
 }

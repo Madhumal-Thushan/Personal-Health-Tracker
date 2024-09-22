@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface HealthGoalRepository extends JpaRepository<Goal, Long> {
     List<Goal> findByUsersId(Long id);
+
+    List<Goal> findByUsersIdAndIsActiveTrue(Long userId);
 }

@@ -1,7 +1,8 @@
 package com.example.Personal.Health.Tracker.Controller;
 
 import com.example.Personal.Health.Tracker.Dto.HealthGoalDto;
-import com.example.Personal.Health.Tracker.Entity.Goal;
+import com.example.Personal.Health.Tracker.Dto.HealthGoalUpdateDto;
+import com.example.Personal.Health.Tracker.Dto.Response.GoalResponse;
 import com.example.Personal.Health.Tracker.Service.HealthGoalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,26 +18,22 @@ public class HealthGoalController {
     @Autowired
     private HealthGoalService healthGoalService;
     @PostMapping("/add")
-    public ResponseEntity<HealthGoalDto> createGoal(@RequestBody Goal goal) {
-        HealthGoalDto createdGoal = healthGoalService.setHealthGoal(goal);
-        return new ResponseEntity<>(createdGoal, HttpStatus.CREATED);
+    public ResponseEntity<GoalResponse> createGoal(@RequestBody HealthGoalDto goal) {
+        return new ResponseEntity<>(healthGoalService.setHealthGoal(goal), HttpStatus.CREATED);
     }
 
     @GetMapping("/get")
-    public ResponseEntity<List<HealthGoalDto>> getHealthGoalByUser(@RequestParam Long userId){
-        List<HealthGoalDto> goalDtos = healthGoalService.getHealthGoalByUser(userId);
-        return new ResponseEntity<>(goalDtos, HttpStatus.OK);
+    public ResponseEntity<List<GoalResponse>> getHealthGoalByUser(@RequestParam Long userId){
+        return new ResponseEntity<>(healthGoalService.getHealthGoalByUser(userId), HttpStatus.OK);
     }
 
     @PutMapping("/edit")
-    public ResponseEntity<HealthGoalDto> updateHealthGoal(@RequestParam Long id, @RequestBody Goal goal) {
-        return  ResponseEntity.ok(healthGoalService.updateHealthGoal(id,goal));
+    public ResponseEntity<GoalResponse> updateHealthGoal(@RequestParam Long id, @RequestBody HealthGoalUpdateDto updateDto) {
+        return  ResponseEntity.ok(healthGoalService.updateHealthGoal(id,updateDto));
     }
 
     @PostMapping("/users/track-progress")
-    public ResponseEntity<List<HealthGoalDto>> trackProgress(@RequestParam Long userId) {
-        healthGoalService.trackGoalProgress(userId);
-        List<HealthGoalDto> updatedGoals = healthGoalService.getHealthGoalByUser(userId);
-        return new ResponseEntity<>(updatedGoals,HttpStatus.OK);
+    public ResponseEntity<List<GoalResponse>> trackProgress(@RequestParam Long userId) {
+        return new ResponseEntity<>(healthGoalService.trackGoalProgress(userId),HttpStatus.OK);
     }
 }
