@@ -100,7 +100,7 @@ Once the application is running, you can access it at:
 ### API Documentation
 used Swagger in this application. Once Application starts you can access Swagger API Doc at :
 http://localhost:8080/swagger-ui/index.html#/
-
+---- API Documantation Doc Added to the root folder 
 ### Notification Service
 The system sends two types of notifications:
 
